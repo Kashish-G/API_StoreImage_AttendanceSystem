@@ -1,16 +1,16 @@
+from django.db import models
+import os
 
-from django.shortcuts import render,redirect
-from .form import ImageForm
-from .models import Image
+def image_upload_path(instance, filename):
+    # Construct the file path based on the username and original filename
+    username = instance.username
+    image_name, image_ext = os.path.splitext(filename)
+    new_filename = f"{username}{image_ext}"
+    return os.path.join("img", username, new_filename)
 
-def index(request):
-    if request.method == "POST":
-        form=ImageForm(data=request.POST,files=request.FILES)
-        if form.is_valid():
-            form.save()
-            obj=form.instance
-            return render(request,"index.html",{"obj":obj})
-    else:
-        form=ImageForm()
-    img=Image.objects.all()
-    return render(request,"index.html",{"img":img,"form":form})
+class Image(models.Model):
+    username = models.CharField(max_length=100)
+    image = models.ImageField(upload_to=image_upload_path)
+
+    def __str__(self):
+        return self.username
